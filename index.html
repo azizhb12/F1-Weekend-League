@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>F1 2026 · HAFTA SONU LİGİ / WEEKEND LEAGUE</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,300;0,600;0,800;1,600&family=JetBrains+Mono:wght@300;400;600&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <header>
+    <div class="wrap">
+      <div class="h-row">
+        <div>
+          <div class="h-eyebrow" data-i="eyebrow">Formula 1 · 2026 Sezonu · Sanal Lig</div>
+          <div class="h-title"><span data-i="title-main">HAFTA SONU</span>&nbsp;<span class="y"
+              data-i="title-accent">LİGİ</span></div>
+          <div class="h-sub" data-i="subtitle">Sıralama · Yarış · Hız · Takım Savaşı · 10/10 Sistem</div>
+        </div>
+        <div class="h-right">
+          <div class="lang-toggle">
+            <button class="lang-btn active" onclick="setLang('tr')">TR</button>
+            <button class="lang-btn" onclick="setLang('en')">EN</button>
+          </div>
+          <div class="h-badge" data-i="season-badge">SEZON 2026</div>
+        </div>
+      </div>
+      <div class="tabs">
+        <button class="tab on" onclick="go('giris')" data-i="tab-input">📥 Veri Giriş</button>
+        <button class="tab" onclick="go('puan')" data-i="tab-scoring">📐 Puan Sistemi</button>
+        <button class="tab" onclick="go('siralama')" data-i="tab-standings">🏆 Sıralama</button>
+        <button class="tab" onclick="go('form')" data-i="tab-form">🔥 Form</button>
+        <button class="tab" onclick="go('log')" data-i="tab-history">📋 Geçmiş</button>
+        <button class="tab" onclick="go('stats')" data-i="tab-stats">📊 İstatistik</button>
+        <button class="tab" onclick="go('share')" data-i="tab-share">𝕏 Paylaşım</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap z1">
+
+    <!-- ═══ DATA ENTRY ═══ -->
+    <div class="panel on" id="panel-giris">
+      <div class="score-band">
+        <div class="sb tel">
+          <div class="sb-cat" data-i="band-pos-cat">Pozisyon</div>
+          <div class="sb-val">5.0</div>
+          <div class="sb-max" data-i="band-of10">/ 10 puan</div>
+          <div class="sb-desc" data-i="band-pos-desc">Sıralama (Q) + yarış bitiş pozisyonu</div>
+        </div>
+        <div class="sb pos">
+          <div class="sb-cat" data-i="band-perf-cat">Performans</div>
+          <div class="sb-val">3.0</div>
+          <div class="sb-max" data-i="band-of10b">/ 10 puan</div>
+          <div class="sb-desc" data-i="band-perf-desc">Grid→bitiş seyri + en hızlı tur hızı</div>
+        </div>
+        <div class="sb bon">
+          <div class="sb-cat" data-i="band-tm-cat">Takım Savaşı</div>
+          <div class="sb-val">2.0</div>
+          <div class="sb-max" data-i="band-tm-max">/ 10 puan</div>
+          <div class="sb-desc" data-i="band-tm-desc">Q + yarış + FL takım arkadaşı karşılaştırması</div>
+        </div>
+        <div class="sb pen">
+          <div class="sb-cat" data-i="band-bp-cat">Bonus / Ceza</div>
+          <div class="sb-val">+3 / −4</div>
+          <div class="sb-max" data-i="band-bp-max">maks</div>
+          <div class="sb-desc" data-i="band-bp-desc">Podyum · FL · Sprint / Kaza · DNF · Ceza</div>
+        </div>
+      </div>
+
+      <div class="sec" data-i="sec-race-select">Yarış Seç</div>
+      <div class="ctrl">
+        <select id="race-sel" onchange="loadRace()"></select>
+        <button class="btn info" onclick="fetchAPIData()" data-i="btn-fetch"
+          style="background:var(--blue);color:#000">🌐 API Çek</button>
+        <button class="btn lime" onclick="saveRace()" data-i="btn-save">💾 Kaydet</button>
+        <button class="btn ghost" onclick="clearInputs()" data-i="btn-clear">✕ Temizle</button>
+      </div>
+
+      <div class="pace-accordion" id="pace-accordion">
+        <button class="pace-toggle" onclick="togglePace()" id="pace-toggle-btn">
+          <span data-i="sec-car-perf">Araç Potansiyeli (Takım Hızı 1-11)</span>
+          <svg class="pace-chevron" id="pace-chevron" width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <polyline points="2,5 7,10 12,5" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round" />
+          </svg>
+        </button>
+        <div class="pace-body" id="pace-body" style="display:none">
+          <div class="ibox" style="margin:0 0 10px 0;padding:10px 14px">
+            <p data-i="car-perf-desc" style="font-size:11px;margin:0">Bu yarışta takımların genel saf hız dizilişini
+              (1=En Hızlı, 11=En Yavaş) belirleyin.
+              Pilotlara araçlarının potansiyellerine (xP) göre puan verilecektir (Eksi puan verilmez).</p>
+          </div>
+          <div class="tscroll">
+            <table style="width:100%; min-width:600px;">
+              <thead>
+                <tr>
+                  <th style="width:30%">Takım</th>
+                  <th style="width:70%">Hız Sırası (1-11)</th>
+                </tr>
+              </thead>
+              <tbody id="team-pace-tbody">
+                <!-- JS will populate -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+
+      <div class="alert" id="alert-box">
+        <span>ℹ️</span>
+        <span id="alert-txt" data-i="alert-default">Yarış seçin. AWS Start Analysis veya Sky Sports grafiklerinden
+          verileri girin.</span>
+      </div>
+
+      <div class="alert info" style="margin-bottom:12px;font-size:10px">
+        <span>📡</span>
+        <span data-i="col-legend">
+          <strong style="color:var(--lime)">Q</strong> = sıralama poz. &nbsp;|&nbsp;
+          <strong>Grid</strong> = kalkış sırası &nbsp;|&nbsp;
+          <strong style="color:var(--blue)">Bitiş</strong> = yarış sonucu &nbsp;|&nbsp;
+          <strong style="color:var(--red)">FL</strong> = en hızlı tur (sn) &nbsp;|&nbsp;
+          <strong>Sp.G / Sp.F</strong> = sprint grid / bitiş
+        </span>
+      </div>
+
+      <div class="sec" data-i="sec-driver-data">Pilot Verileri</div>
+      <div class="tscroll">
+        <table id="inp-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th data-i="th-driver">Pilot</th>
+              <th data-i="th-team">Takım</th>
+              <th data-i="th-qpos" title="Qualifying position">Q</th>
+              <th data-i="th-qtime" title="Qualifying lap time">Q Süresi</th>
+              <th data-i="th-grid" title="Grid position">Grid</th>
+              <th data-i="th-finish" title="Race finish position">Bitiş</th>
+              <th data-i="th-fl" title="Fastest lap (seconds)">FL (s)</th>
+              <th data-i="th-qhata" title="Qualifying error / grid penalty">Q Hata 💥</th>
+              <th data-i="th-qmech" title="Qualifying mechanical failure">Q Arıza ⚙️</th>
+              <th data-i="th-dnfp" title="DNF - Driver's fault">DNF·P 🚫</th>
+              <th data-i="th-dnfnc" title="DNF - Not driver's fault (mechanical)">DNF·NC 🚧</th>
+              <th data-i="th-penalty" title="Received penalty">Ceza ⚠️</th>
+              <th data-i="th-dns-nc" title="DNS - Not driver's fault — excluded from average">DNS·NC</th>
+              <th data-i="th-dns-p" title="DNS - Driver's fault — counts as 0 pts">DNS·P</th>
+              <th data-i="th-spgrid" title="Sprint grid position">Sp.G</th>
+              <th data-i="th-spfinish" title="Sprint finish position">Sp.F</th>
+              <th data-i="th-spqhata" title="Sprint qualifying crash">Sp.Q💥</th>
+              <th data-i="th-spqmech" title="Sprint qualifying mechanical">Sp.Q⚙️</th>
+              <th data-i="th-spdnfp" title="Sprint DNF driver fault">Sp.DNF·P</th>
+              <th data-i="th-spdnfnc" title="Sprint DNF mechanical">Sp.DNF·NC</th>
+              <th data-i="th-sppen" title="Sprint penalty">Sp.Ceza</th>
+              <th data-i="th-score">Puan</th>
+            </tr>
+          </thead>
+          <tbody id="inp-tbody"></tbody>
+        </table>
+      </div>
+      <div style="font-size:10px;color:var(--muted);margin-top:8px;line-height:1.9" data-i="input-note">
+        * En az 3 pilot verisi girilmelidir. FL = en hızlı tur toplam saniye (ör: 1:32.456 → 92.456).<br>
+        * Sprint alanları sadece sprint hafta sonlarında doldurulur. Takım arkadaşı karşılaştırması otomatik hesaplanır.
+      </div>
+    </div>
+
+    <!-- ═══ SCORING ═══ -->
+    <div class="panel" id="panel-puan">
+      <div class="sec" data-i="sec-logic">Genel Mantık</div>
+      <div class="ibox">
+        <p data-i="logic-p1">Her hafta sonu <strong>10 tam puan</strong> üzerinden değerlendirilir. Sezon sonunda
+          <strong class="hl">yarış başına ortalama puan</strong> şampiyonu belirler.
+        </p>
+        <p data-i="logic-p2">5 bileşen: <span class="hl">Pozisyon (5.0)</span> + <span class="hl-b">Performans
+            (3.0)</span> + <span class="hl-a">Takım Savaşı (2.0)</span> + Bonus (maks +3.0) + <span class="hl-r">Ceza
+            (maks −4.0)</span></p>
+        <p data-i="logic-p3">Pozisyon = sıralama + yarış bitişi. Performans = beklenen sıra (xP) vs yarış bitişi + en
+          hızlı tur. Takım
+          savaşı = aracı eşitleyerek saf pilotaj farkını ölçer.</p>
+        <p style="margin-top:8px;color:var(--lime)" data-i="logic-max">→ Teorik maks: 10.0 + 3.0 = 13.0 puan (sezon
+          ortalamasında ulaşılamaz)</p>
+      </div>
+
+      <div class="sec" data-i="sec-position">Pozisyon Puanı — 5.0 / 10</div>
+      <div class="scoring-detail">
+        <div class="sd lime">
+          <div class="sd-cat" data-i="sd-qual-cat">🏁 Sıralama Araç Potansiyeli vs Bitiş (xP)</div>
+          <div class="sd-pts">1.5 pt</div>
+          <div class="sd-desc" data-i="sd-qual-desc">Takım hızına göre xP (Beklenen Pozisyon) bulunur. Pilotun kaçıncı
+            sırayı aldığına bakılır. Bekleneni aştıkça puan artar (Maks 1.5). Eksi puan (0'ın altı) verilmez.</div>
+        </div>
+        <div class="sd lime">
+          <div class="sd-cat" data-i="sd-finish-cat">🏆 Yarış Bitişi</div>
+          <div class="sd-pts">3.5 pt</div>
+          <div class="sd-desc" data-i="sd-finish-desc">Yarış galibi → 3.5 pt. Her sıra geriye: −0.175 pt. Min 0.</div>
+        </div>
+      </div>
+
+      <div class="sec" data-i="sec-perf">Performans Puanı — 3.0 / 10</div>
+      <div class="ibox" style="margin-bottom:16px">
+        <p data-i="perf-explain">Takım hızı baz alınarak beklenen pozisyon (xP) ile <strong>yarış bitiş
+            pozisyonu</strong> karşılaştırılır. Ek olarak en
+          hızlı tur süresi ham hız göstergesi olarak değerlendirilir.</p>
+      </div>
+      <div class="scoring-detail">
+        <div class="sd blue">
+          <div class="sd-cat" data-i="sd-craft-cat">📊 Araç Potansiyeli vs Bitiş (xP)</div>
+          <div class="sd-pts">1.5 pt</div>
+          <div class="sd-desc" data-i="sd-craft-desc">Takım hızına göre xP (Beklenen Pozisyon) bulunur. Pilotun yarışı
+            nerede bitirdiğine bakılır. Bekleneni aştıkça puan artar (Maks 1.5). Eksi puan (0'ın altı) verilmez.</div>
+        </div>
+        <div class="sd blue">
+          <div class="sd-cat" data-i="sd-pace-cat">⏱️ En Hızlı Tur</div>
+          <div class="sd-pts">1.5 pt</div>
+          <div class="sd-desc" data-i="sd-pace-desc">Yarışın en hızlısı → 1.5 pt. Her +0.3s fark: −0.15 pt. Min 0.</div>
+        </div>
+        <div class="sd blue">
+          <div class="sd-cat" data-i="sd-tm-cat">🤝 Takım Arkadaşı Savaşı</div>
+          <div class="sd-pts">2.0 pt</div>
+          <div class="sd-desc" data-i="sd-tm-desc">Karşılaştırma: Q (+0.7), Yarış (+1.0), En Hızlı Tur (+0.3). (Takım
+            arkadaşı DNF ise veya yoksa oranlar değişir).</div>
+        </div>
+      </div>
+
+      <div class="sec" data-i="sec-bonus">Bonus / Ceza Limitleri</div>
+      <div class="ibox" style="margin-bottom:16px">
+        <p data-i="bonus-explain">Sezonluk sıralamada <strong>10.0 ortalamayı geçmek imkansızdır</strong>. Alınan bonus
+          ve cezalar haftalık performansa etki ederek 10 limitini aşmayı (geçici olarak) sağlayabilir.</p>
+      </div>
+      <div class="scoring-detail">
+        <div class="sd lime">
+          <div class="sd-cat" data-i="sd-bonus-cat">⭐ Bonuslar (Maks +3.0)</div>
+          <div class="sd-pts">+ pt</div>
+          <div class="sd-desc" data-i="sd-bonus-desc">• Yarış galibiyeti: +1.0<br>• Podyum (2. ve 3.): +0.5<br>•
+            Haftanın en hızlı turu: +0.5<br>• Mekanik Arıza (Q Mech) Tesellisi: +1.2<br>• Q Arıza yaşayıp yarışta 5 sıra
+            yükselme: +0.5<br>• Sprint Formatı
+            (Sıralama / Yarış gelişimi): maks +1.0</div>
+        </div>
+        <div class="sd red">
+          <div class="sd-cat" data-i="sd-pen-cat">⚠️ Cezalar (Maks −4.0)</div>
+          <div class="sd-pts">− pt</div>
+          <div class="sd-desc" data-i="sd-pen-desc">• Q'da kendi hatasıyla kaza: −1.0<br>• Pilot kaynaklı DNF: −1.5<br>•
+            Pist üstü ceza (Time/Grid penalty): −0.5</div>
+        </div>
+      </div>
+
+      <div class="sec" data-i="sec-teammate">Takım Arkadaşı Savaşı — 2.0 / 10</div>
+      <div class="ibox" style="margin-bottom:16px">
+        <p data-i="tm-explain">Aynı araçtaki iki pilotu karşılaştırarak <strong>aracı eşitler</strong>, saf pilotaj
+          farkını ölçer. Williams'ta P12 biten bir pilot Ferrari'de P5 bitenden daha iyi olabilir — bu metrik bunu
+          yakalar.</p>
+      </div>
+      <div class="scoring-detail">
+        <div class="sd amber">
+          <div class="sd-cat" data-i="sd-tmq-cat">🏁 Q Karşılaştırma</div>
+          <div class="sd-pts">0.7 pt</div>
+          <div class="sd-desc" data-i="sd-tmq-desc">Sıralamada takım arkadaşını yendiyse. Arkadaş DNS ise yarım puan.
+          </div>
+        </div>
+        <div class="sd amber">
+          <div class="sd-cat" data-i="sd-tmr-cat">🏆 Yarış Karşılaştırma</div>
+          <div class="sd-pts">1.0 pt</div>
+          <div class="sd-desc" data-i="sd-tmr-desc">Yarışta takım arkadaşını yendiyse. Arkadaş DNF ise yarım puan.</div>
+        </div>
+        <div class="sd amber">
+          <div class="sd-cat" data-i="sd-tmfl-cat">⏱️ FL Karşılaştırma</div>
+          <div class="sd-pts">0.3 pt</div>
+          <div class="sd-desc" data-i="sd-tmfl-desc">En hızlı turda takım arkadaşından hızlıysa.</div>
+        </div>
+      </div>
+
+      <div class="sec" data-i="sec-bonus">Bonus Puanlar</div>
+      <div class="scoring-detail">
+        <div class="sd teal">
+          <div class="sd-cat" data-i="sd-winner-cat">🥇 Yarış Galibi</div>
+          <div class="sd-pts">+1.0 pt</div>
+          <div class="sd-desc" data-i="sd-winner-desc">Yarışı kazanan pilota ek bonus.</div>
+        </div>
+        <div class="sd teal">
+          <div class="sd-cat" data-i="sd-podium-cat">🥈 Podyum</div>
+          <div class="sd-pts">+0.5 pt</div>
+          <div class="sd-desc" data-i="sd-podium-desc">P2 veya P3 bitiren pilota bonus.</div>
+        </div>
+        <div class="sd teal">
+          <div class="sd-cat" data-i="sd-rfl-cat">⏱️ Yarışın En Hızlı Turu</div>
+          <div class="sd-pts">+0.5 pt</div>
+          <div class="sd-desc" data-i="sd-rfl-desc">Yarışın en hızlı turunu atan pilota bonus.</div>
+        </div>
+        <div class="sd teal">
+          <div class="sd-cat" data-i="sd-spgain-cat">🏎️ Sprint Kazanım</div>
+          <div class="sd-pts">+0.5 pt</div>
+          <div class="sd-desc" data-i="sd-spgain-desc">Sprint'te net 3+ pozisyon kazanan pilota.</div>
+        </div>
+        <div class="sd teal">
+          <div class="sd-cat" data-i="sd-sptm-cat">🏎️ Sprint Takım Savaşı</div>
+          <div class="sd-pts">+0.5 pt</div>
+          <div class="sd-desc" data-i="sd-sptm-desc">Sprint'te takım arkadaşının önünde bitiren pilota.</div>
+        </div>
+        <div class="sd teal">
+          <div class="sd-cat" data-i="sd-qmech-cat">⚙️ Mekanik Telafi Bonusu</div>
+          <div class="sd-pts">+0.5 pt</div>
+          <div class="sd-desc" data-i="sd-qmech-desc">Q Arıza yaşayıp yarışta 5+ sıra kazanan pilota +0.5 pt.</div>
+        </div>
+        <div class="sd teal">
+          <div class="sd-cat" data-i="sd-spqmech-cat">⚙️ Sprint Q Arıza Tesellisi</div>
+          <div class="sd-pts">+0.3 pt</div>
+          <div class="sd-desc" data-i="sd-spqmech-desc">Sprint sıralama turu sırasında mekanik arıza yaşayan pilota
+            teselli bonusu.</div>
+        </div>
+      </div>
+
+      <div class="sec" data-i="sec-sprint-pen">Sprint Cezaları</div>
+      <div class="scoring-detail">
+        <div class="sd red">
+          <div class="sd-cat" data-i="sd-spqhata-cat">💥 Sprint Q Hata</div>
+          <div class="sd-pts">−0.5 pt</div>
+          <div class="sd-desc" data-i="sd-spqhata-desc">Sprint sıralama turunda kendi hatasıyla kaza veya hata.</div>
+        </div>
+        <div class="sd red">
+          <div class="sd-cat" data-i="sd-spdnfp-cat">🚫 Sprint DNF·P</div>
+          <div class="sd-pts">−0.5 pt</div>
+          <div class="sd-desc" data-i="sd-spdnfp-desc">Sprint yarışında kendi hatasıyla yarış dışı kalma.</div>
+        </div>
+        <div class="sd red">
+          <div class="sd-cat" data-i="sd-sppen-cat">⚠️ Sprint Ceza</div>
+          <div class="sd-pts">−0.25 pt</div>
+          <div class="sd-desc" data-i="sd-sppen-desc">Sprint sırasında alınan zaman veya sıra cezası.</div>
+        </div>
+        <div class="sd amber">
+          <div class="sd-cat" data-i="sd-spdnfnc-cat">🚧 Sprint DNF·NC</div>
+          <div class="sd-pts" style="color:var(--amber)">0 pt</div>
+          <div class="sd-desc" data-i="sd-spdnfnc-desc">Sprint'te mekanik arıza ile yarış dışı. Ceza yok, sprint
+            bonusları iptal.</div>
+        </div>
+      </div>
+
+      <div class="sec" data-i="sec-penalty">Ceza Puanlar</div>
+      <div class="scoring-detail">
+        <div class="sd red">
+          <div class="sd-cat" data-i="sd-qhata-cat">💥 Q Hata (Pilot Hatası)</div>
+          <div class="sd-pts">−1.0 pt</div>
+          <div class="sd-desc" data-i="sd-qhata-desc">Sıralama kazası veya grid cezası. Anında −1.0 pt kesilir. Yarış
+            seyri maks 1.0 pt ile kısıtlanır.</div>
+        </div>
+        <div class="sd red">
+          <div class="sd-cat" data-i="sd-dnfp-cat">🚫 DNF · P (Kendi Hatası)</div>
+          <div class="sd-pts">−1.5 pt</div>
+          <div class="sd-desc" data-i="sd-dnfp-desc">Kendi hatası nedeniyle yarış dışı kalma. DNF·NC (mekanik arıza vb.)
+            ise ceza yok.</div>
+        </div>
+        <div class="sd red">
+          <div class="sd-cat" data-i="sd-pen-cat">⚠️ Yarış Cezası</div>
+          <div class="sd-pts">−0.5 pt</div>
+          <div class="sd-desc" data-i="sd-pen-desc">Yarış sırasında alınan zaman/sıra cezası.</div>
+        </div>
+      </div>
+
+      <div class="sec" data-i="sec-dnf">DNF — Yarış Dışı Kalma</div>
+      <div class="ibox" style="margin-bottom:16px">
+        <p data-i="dnf-explain">Yarışı bitiremeyen pilotlar iki şekilde işlenir. <strong class="hl-a">DNF·NC</strong>:
+          mekanik arıza, başkasının kazası gibi kendi hatası olmayan durumlar — ceza puanı yok, Q ve FL verileri yine
+          sayılır. <strong class="hl-r">DNF·P</strong>: kendi kazası/hatası — −1.5 ceza uygulanır.</p>
+      </div>
+
+      <div class="sec" data-i="sec-dns">DNS — Başlayamama</div>
+      <div class="ibox" style="margin-bottom:16px">
+        <p data-i="dns-explain">Pilotun hafta sonuna hiç katılamaması iki farklı şekilde işlenir. Kendi dışındaki bir
+          sebeple başlayamadıysa (araç arızası, takım hatası) o hafta sonu <strong class="hl-a">sezon ortalamasına hiç
+            dahil edilmez</strong>. Kendi hatası veya ceza sonucu başlayamadıysa <strong class="hl-r">0 puan alır ve
+            ortalamayı etkiler.</strong></p>
+      </div>
+      <div class="scoring-detail">
+        <div class="sd amber">
+          <div class="sd-cat" data-i="sd-dnsnc-cat">🚧 DNS · NC <span style="font-size:9px">(Not Culpable)</span></div>
+          <div class="sd-pts" style="color:var(--amber)" data-i="sd-dnsnc-pts">Hariç</div>
+          <div class="sd-desc" data-i="sd-dnsnc-desc">Araç arızası, takım hatası, başkasının kazası. <strong>Ortalamaya
+              dahil edilmez.</strong></div>
+        </div>
+        <div class="sd red">
+          <div class="sd-cat" data-i="sd-dnsp-cat">🚫 DNS · P <span style="font-size:9px">(Penalty/Fault)</span></div>
+          <div class="sd-pts">0 pt</div>
+          <div class="sd-desc" data-i="sd-dnsp-desc">Ceza, diskalifikasyon, kendi hatası. <strong>0 puan
+              sayılır,</strong> ortalamayı etkiler.</div>
+        </div>
+      </div>
+
+      <div class="sec" data-i="sec-champion">Sezon Şampiyonu</div>
+      <div class="ibox">
+        <p data-i="champ-p1">Şampiyon = <strong class="hl">yarış başına ortalama puan</strong> en yüksek pilot.</p>
+        <p data-i="champ-p2">Eşitlik kırma sırası: (1) En fazla 10+ puan yarışı → (2) En yüksek tek yarış puanı → (3) En
+          az DNF·P</p>
+        <p data-i="champ-p3">Sprint verileri aynı hafta sonu içinde bonus olarak değerlendirilir.</p>
+      </div>
+    </div>
+
+    <!-- ═══ STANDINGS ═══ -->
+    <div class="panel" id="panel-siralama">
+      <div class="sec">
+        <div><span data-i="sec-standings">Genel Sıralama</span> — <span id="done-lbl" style="color:var(--lime)">0 /
+            24</span> <span data-i="races-done">yarış</span></div>
+        <select id="track-filter" style="margin-left:auto;font-size:10px;padding:4px 8px;border-radius:4px"
+          onchange="refreshStandings()">
+          <option value="all" data-i="filter-all">Tüm Pistler</option>
+          <option value="traditional" data-i="filter-trad">Geleneksel Pistler</option>
+          <option value="street" data-i="filter-street">Sokak Pistleri</option>
+          <option value="fast" data-i="filter-fast">Hızlı Pistler</option>
+        </select>
+      </div>
+      <div id="podium-wrap"></div>
+      <div class="tscroll">
+        <table>
+          <thead>
+            <tr>
+              <th data-i="th-rank">Sıra</th>
+              <th data-i="th-driver2">Pilot</th>
+              <th data-i="th-team2">Takım</th>
+              <th data-i="th-avg">Ort. Puan</th>
+              <th data-i="th-total">Top. Puan</th>
+              <th data-i="th-races">Yarış</th>
+              <th data-i="th-best">En İyi</th>
+              <th>DNF</th>
+              <th data-i="th-dnsnc-stand" title="DNS - Not Culpable, excluded from average">DNS·NC</th>
+              <th data-i="th-graph">Grafik</th>
+            </tr>
+          </thead>
+          <tbody id="stand-tbody"></tbody>
+        </table>
+      </div>
+
+      <!-- TEAM STANDINGS -->
+      <div class="team-stand-wrap">
+        <div class="sec" data-i="sec-team-stand">Takım Sıralaması</div>
+        <div class="tscroll">
+          <table class="team-stand-table">
+            <thead>
+              <tr>
+                <th data-i="th-t-rank">Sıra</th>
+                <th data-i="th-t-team">Takım</th>
+                <th data-i="th-t-avg">Ort. Puan</th>
+                <th data-i="th-t-total">Top. Puan</th>
+                <th data-i="th-t-best">En İyi</th>
+              </tr>
+            </thead>
+            <tbody id="team-stand-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- HEAD-TO-HEAD -->
+      <div class="pace-accordion h2h-accordion" id="h2h-accordion">
+        <button class="pace-toggle" onclick="toggleH2H()" id="h2h-toggle-btn">
+          <span data-i="sec-h2h">Kafa Kafaya Karşılaştırma</span>
+          <svg class="pace-chevron" id="h2h-chevron" width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <polyline points="2,5 7,10 12,5" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round" />
+          </svg>
+        </button>
+        <div class="pace-body" id="h2h-body" style="display:none">
+          <div class="h2h-selectors">
+            <select id="h2h-a" onchange="renderH2H()"></select>
+            <span class="h2h-vs">VS</span>
+            <select id="h2h-b" onchange="renderH2H()"></select>
+          </div>
+          <div id="h2h-result"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ FORM / POWER RANKINGS ═══ -->
+    <div class="panel" id="panel-form">
+      <div class="sec" data-i="sec-form">Güç Sıralaması (Son 3 Yarış)</div>
+      <div class="ibox" style="margin-bottom:16px">
+        <p data-i="form-explain">Sadece son 3 yarış temel alınarak <strong class="hl">form durumu</strong> hesaplanır.
+          Ağırlıklar: Son yarış %50, Önceki %30, Daha Önceki %20.</p>
+      </div>
+      <div class="tscroll">
+        <table>
+          <thead>
+            <tr>
+              <th data-i="th-rank">Sıra</th>
+              <th data-i="th-driver2">Pilot</th>
+              <th data-i="th-team2">Takım</th>
+              <th data-i="th-form-rating">Form Puanı</th>
+              <th data-i="th-trend">Trend</th>
+            </tr>
+          </thead>
+          <tbody id="form-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ LOG ═══ -->
+    <div class="panel" id="panel-log">
+      <div class="sec" data-i="sec-history">Yarış Geçmişi</div>
+      <div id="log-wrap"></div>
+      <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px">
+        <div class="sec" data-i="sec-backup">Yedekleme</div>
+        <div class="ctrl">
+          <button class="btn ghost" onclick="exportData()" data-i="btn-export">⬇ Export JSON</button>
+          <button class="btn ghost" onclick="document.getElementById('import-file').click()" data-i="btn-import">⬆
+            Import JSON</button>
+          <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ STATISTICS ═══ -->
+    <div class="panel" id="panel-stats">
+      <div class="sec" data-i="sec-stats">Detaylı İstatistikler</div>
+      <div id="stats-wrap">
+        <!-- JS will populate -->
+      </div>
+    </div>
+
+    <!-- ═══ SHARE ═══ -->
+    <div class="panel" id="panel-share">
+      <div class="sec" data-i="sec-share">𝕏 Paylaşım Görseli</div>
+      <div class="canvas-wrap">
+        <canvas id="share-cv" width="1920" height="1440"></canvas>
+      </div>
+      <div class="ctrl">
+        <button class="btn lime" onclick="renderCanvas()" data-i="btn-generate">🎨 Oluştur</button>
+        <button class="btn ghost" onclick="dlCanvas()" data-i="btn-download">⬇ İndir PNG</button>
+      </div>
+      <div class="ibox" style="margin-top:12px">
+        <p><strong data-i="share-suggested">Önerilen:</strong> <span class="hl" data-i="share-template">🏁 F1 2026 Hafta
+            Sonu Ligi — R[X] [GP] | [Pilot] [Puan]/10</span></p>
+        <p><strong data-i="share-hashtags">Hashtag'ler:</strong> <span class="hl">#F1HaftaSonuLigi #F1WeekendLeague #F1
+            #Formula1 #F12026</span></p>
+      </div>
+    </div>
+
+  </div><!-- /wrap -->
+
+  <!-- BREAKDOWN OVERLAY -->
+  <div id="bd-overlay" class="bd-overlay" onclick="closeBD()">
+    <div class="bd-modal" onclick="event.stopPropagation()">
+      <div class="bd-header">
+        <h3 id="bd-title">Breakdown</h3>
+        <button class="bd-close" onclick="closeBD()">&times;</button>
+      </div>
+      <div id="bd-body"></div>
+    </div>
+  </div>
+
+  <!-- CHART OVERLAY -->
+  <div class="bd-overlay" id="chart-overlay" onclick="if(event.target===this)closeChart()">
+    <div class="bd-modal" style="max-width:800px">
+      <div class="bd-header">
+        <h3 id="chart-title">—</h3>
+        <button class="bd-close" onclick="closeChart()">&times;</button>
+      </div>
+      <div style="padding:16px; width:100%; height:300px; box-sizing:border-box">
+        <canvas id="seasonChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  </div>
+
+  <footer class="app-footer">
+    <span class="app-footer-logo" data-i="footer-league">F1 HAFTA SONU LİGİ</span>
+    <span class="app-footer-sep">·</span>
+    <span class="app-footer-version">v1.2.1</span>
+    <span class="app-footer-sep">·</span>
+    <span class="app-footer-date">2026-03-14</span>
+  </footer>
+
+  <script src="logos.js"></script>
+  <script src="data.js"></script>
+  <script src="i18n.js"></script>
+  <script src="scoring.js"></script>
+  <script src="ui.js"></script>
+  <script src="canvas.js"></script>
+  <script src="stats.js"></script>
+  <script src="app.js"></script>
+</body>
+
+</html>
