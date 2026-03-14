@@ -76,3 +76,13 @@ Proje istemci tarafında (client-side) çalışan, derleme (build) işlemine vey
 1. Repoyu bilgisayarınıza klonlayın: `git clone https://github.com/your-username/f1-league.git`
 2. Klasörü bilgisayarınızda açın.
 3. Modern bir tarayıcıda `index.html` dosyasına çift tıklayın veya VS Code'da 'Live Server' eklentisi ile çalıştırın.
+
+## 🤝 Katkıda Bulunma
+Bu uygulama tamamen kendi kişisel F1 tutkumla, yarışların ve pilot performanslarının daha adil değerlendirilmesi amacıyla geliştirdiğim bağımsız (hobi) bir projedir.
+
+Bu yüzden projeyi her türlü **fikre, tavsiyeye ve kod geliştirmesine** tamamen açık tutuyorum. Özellikle şunlar için geri bildirimlerinize (Issue açmanıza ya da Pull Request yollamanıza) çok sevinirim:
+- *"X pilotu o yarışta bence böyle puanlanmalıydı, xP hesaplamasına şu da eklenebilir"* gibi **Puanlama & Denge tartışmaları**.
+- Yeni istatistik kartları veya UI/UX arayüz iyileştirmeleri.
+- Bug (hata) bildirimleri.
+
+Projeye yıldız (⭐️) vererek veya yeni fikirler sunarak bu ufak sanal ligi birlikte çok daha keyifli bir hale getirmeme yardımcı olabilirsiniz!

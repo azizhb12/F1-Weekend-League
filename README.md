@@ -75,3 +75,13 @@ Since this is a client-side vanilla JavaScript application with no complex build
 1. Clone this repository: `git clone https://github.com/your-username/f1-league.git`
 2. Open the directory on your machine.
 3. Simply launch `index.html` in any modern web browser or serve it using tools like VS Code Live Server.
+
+## 🤝 Contributing
+This application is a personal passion project built out of my love for Formula 1, created to evaluate races and driver performances in a much fairer, machinery-independent way. 
+
+Because of this, I am completely open to **any kind of ideas, suggestions, and code contributions**. I would be absolutely thrilled if you open Issues or send Pull Requests, especially for:
+- **Scoring & Balance discussions:** *"I think driver X should have been scored differently here, maybe we can add Y to the xP calculation..."*
+- Ideas for new Statistics cards or UI/UX improvements.
+- Bug reports and code refactoring.
+
+You can help me make this little virtual league much more exciting by starring (⭐️) the repository or sharing your creative ideas!
